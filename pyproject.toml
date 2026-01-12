@@ -1,0 +1,60 @@
+[build-system]
+requires = ["poetry-core>=1.0.0", ]
+build-backend = "poetry.core.masonry.api"
+
+
+[tool.poetry]
+name = "llm-tools"
+version = "0.1.0"
+description = "Tools, helpers and other useful stuff to use LLMs"
+authors = ["tea-de-kay", ]
+
+[tool.poetry.dependencies]
+python = ">=3.12"
+loguru = ">=0.7.0"
+openai = ">2.0.0"
+pydantic = ">2.12.0"
+python-dotenv = ">=1.0.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "8.*"
+pytest-cov = "6.*"
+pytest-asyncio = "1.*"
+ruff = ">0.14.0"
+pyright = "1.*"
+
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+testpaths = ["tests", "tests_integration", "tests_e2e", "tests_security"]
+python_files = ["test_*.py", "*Test.py", "*_test.py", ]
+asyncio_default_fixture_loop_scope = "session"
+# asyncio_default_test_loop_scope = "session"
+
+
+[tool.pyright]
+# https://microsoft.github.io/pyright/#/configuration
+include = ["llm_tools"]
+exclude = ["tests", "tests_integration", "tests_e2e"]
+ignore = []
+defineConstant = { DEBUG = false }
+
+reportMissingImports = true
+reportMissingTypeStubs = false
+
+pythonVersion = "3.12"
+pythonPlatform = "Linux"
+
+
+[tool.ruff]
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["ASYNC", "B", "E", "F", "I", "S", "SIM", "UP", "W"]
+ignore = ["SIM103", "SIM108", "S101", "S311"]
+
+[tool.ruff.lint.pycodestyle]
+max-line-length = 120
+
+[tool.ruff.lint.isort]
+lines-after-imports = 2
