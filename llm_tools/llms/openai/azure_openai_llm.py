@@ -40,6 +40,7 @@ from llm_tools.models.llm import (
 )
 from llm_tools.models.settings import LlmApiSettings
 from llm_tools.models.types import LlmMessageRole, LlmReasoningEffort
+from llm_tools.prompt.prompt import LlmPrompt
 from llm_tools.utils.log import LogFactory
 
 
@@ -115,17 +116,18 @@ class AzureOpenAiLLM(LLM):
 
     def generate(
         self,
-        messages: Sequence[LlmMessage],
+        prompt: LlmPrompt,
         config: LlmGenerationConfig = DEFAULT_LLM_GENERATION_CONFIG,
         stream: bool = False,
     ) -> AsyncIterator[LlmMessageChunk | LlmMessage]:
+        messages = prompt.to_llm_messages()
         _log.debug("Prompt [messages='{}']", messages)
 
         try:
             if stream:
-                gen = self._generate_chunks(messages=messages, config=config)
+                gen = self._generate_chunks(messages, config)
             else:
-                gen = self._generate(messages=messages, config=config)
+                gen = self._generate(messages, config)
 
         except Exception as e:
             _log.exception("Exception for LLM request [exception='{}']", e)

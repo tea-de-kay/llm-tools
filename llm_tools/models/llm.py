@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 from llm_tools.models.errors import ErrorInfo
 from llm_tools.models.settings import LlmApiSettings
 from llm_tools.models.types import LlmMessageRole, LlmReasoningEffort, Usage
+from llm_tools.prompt.prompt import LlmPrompt
 
 
 class LlmUsage(Usage):
@@ -80,7 +81,7 @@ class LLM(ABC):
     @abstractmethod
     def generate(
         self,
-        messages: Sequence[LlmMessage],
+        prompt: LlmPrompt,
         config: LlmGenerationConfig = DEFAULT_LLM_GENERATION_CONFIG,
         stream: bool = False,
     ) -> AsyncIterator[LlmMessageChunk | LlmMessage]:
