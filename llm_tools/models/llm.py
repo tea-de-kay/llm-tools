@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from base64 import b64encode
-from collections.abc import AsyncIterator, Sequence
+from collections.abc import AsyncIterator
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -8,7 +8,6 @@ from pydantic import BaseModel, Field
 from llm_tools.models.errors import ErrorInfo
 from llm_tools.models.settings import LlmApiSettings
 from llm_tools.models.types import LlmMessageRole, LlmReasoningEffort, Usage
-from llm_tools.prompt.prompt import LlmPrompt
 
 
 class LlmUsage(Usage):
@@ -73,16 +72,28 @@ class LlmSpec(BaseModel):
     supports_tools: bool = False
 
 
+class BasePrompt(BaseModel):
+    def to_llm_messages(self) -> list[LlmMessage]:
+        raise NotImplementedError()
+
+
 class LLM(ABC):
     def __init__(self, api_settings: LlmApiSettings, spec: LlmSpec) -> None:
         self._api_settings = api_settings
         self._llm_spec = spec
 
     @abstractmethod
-    def generate(
+    async def generate(
         self,
-        prompt: LlmPrompt,
+        prompt: BasePrompt,
         config: LlmGenerationConfig = DEFAULT_LLM_GENERATION_CONFIG,
-        stream: bool = False,
+    ) -> LlmMessage:
+        pass
+
+    @abstractmethod
+    def generate_stream(
+        self,
+        prompt: BasePrompt,
+        config: LlmGenerationConfig = DEFAULT_LLM_GENERATION_CONFIG,
     ) -> AsyncIterator[LlmMessageChunk | LlmMessage]:
         pass

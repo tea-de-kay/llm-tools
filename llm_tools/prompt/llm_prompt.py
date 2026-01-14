@@ -1,8 +1,8 @@
-from jinja2 import Environment, Template
+from jinja2 import Environment
 from jinja2 import Template as JinjaTemplate
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import ConfigDict, field_validator
 
-from llm_tools.models.llm import LlmMedium, LlmMessage
+from llm_tools.models.llm import BasePrompt, LlmMedium, LlmMessage
 from llm_tools.models.prompt import ConversationHistory, PromptTemplateVariables
 from llm_tools.models.types import LlmMessageRole
 
@@ -10,19 +10,19 @@ from llm_tools.models.types import LlmMessageRole
 JINJA_ENV = Environment(trim_blocks=True, autoescape=False)
 
 
-def create_template(template: str, strip: bool = True) -> Template:
+def create_template(template: str, strip: bool = True) -> JinjaTemplate:
     if strip:
         template = template.strip()
     return JINJA_ENV.from_string(template)
 
 
-class LlmPrompt(BaseModel):
+class LlmPrompt(BasePrompt):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     system_prompt_template: str | JinjaTemplate | None
     user_prompt_template: str | JinjaTemplate | None
     prompt_inputs: PromptTemplateVariables
-    history: ConversationHistory | None
+    history: ConversationHistory | None = None
     media: list[LlmMedium] | None = None
 
     @field_validator("system_prompt_template", "user_prompt_template")
@@ -37,7 +37,7 @@ class LlmPrompt(BaseModel):
         return value
 
     def to_llm_messages(self) -> list[LlmMessage]:
-        prompt_inputs = self.prompt_inputs.model_dump()
+        prompt_inputs = dict(self.prompt_inputs)
         messages: list[LlmMessage] = []
         if isinstance(self.system_prompt_template, JinjaTemplate):
             msg = LlmMessage(

@@ -31,6 +31,7 @@ from llm_tools.models.errors import ErrorCode, ErrorInfo
 from llm_tools.models.llm import (
     DEFAULT_LLM_GENERATION_CONFIG,
     LLM,
+    BasePrompt,
     LlmGenerationConfig,
     LlmMedium,
     LlmMessage,
@@ -40,7 +41,6 @@ from llm_tools.models.llm import (
 )
 from llm_tools.models.settings import LlmApiSettings
 from llm_tools.models.types import LlmMessageRole, LlmReasoningEffort
-from llm_tools.prompt.prompt import LlmPrompt
 from llm_tools.utils.log import LogFactory
 
 
@@ -114,38 +114,40 @@ class AzureOpenAiLLM(LLM):
 
         return client
 
-    def generate(
+    async def generate(
         self,
-        prompt: LlmPrompt,
+        prompt: BasePrompt,
         config: LlmGenerationConfig = DEFAULT_LLM_GENERATION_CONFIG,
-        stream: bool = False,
-    ) -> AsyncIterator[LlmMessageChunk | LlmMessage]:
+    ) -> LlmMessage:
         messages = prompt.to_llm_messages()
         _log.debug("Prompt [messages='{}']", messages)
 
         try:
-            if stream:
-                gen = self._generate_chunks(messages, config)
-            else:
-                gen = self._generate(messages, config)
-
+            gen = await self._generate(messages, config)
         except Exception as e:
             _log.exception("Exception for LLM request [exception='{}']", e)
             gen = self._get_error_response(e)
 
         return gen
 
+    def generate_stream(
+        self,
+        prompt: BasePrompt,
+        config: LlmGenerationConfig = DEFAULT_LLM_GENERATION_CONFIG,
+    ) -> AsyncIterator[LlmMessageChunk | LlmMessage]:
+        raise NotImplementedError()
+
     async def _generate(
         self,
         messages: Sequence[LlmMessage],
         config: LlmGenerationConfig,
-    ) -> AsyncIterator[LlmMessage]:
+    ) -> LlmMessage:
         response = await self._call_to_api(
             messages=self._get_messages(messages), config=config
         )
         _log.trace("LLM response [response='{}']", response)
 
-        yield await self._get_llm_message(response)
+        return await self._get_llm_message(response)
 
     async def _generate_chunks(
         self,
@@ -221,7 +223,7 @@ class AzureOpenAiLLM(LLM):
 
         return max(len(prefix) for prefix in prefixes)
 
-    async def _get_error_response(self, e: Exception) -> AsyncIterator[LlmMessage]:
+    def _get_error_response(self, e: Exception) -> LlmMessage:
         code = ErrorCode.LLM_API_ERROR
         detail = ""
         match e:
@@ -243,7 +245,7 @@ class AzureOpenAiLLM(LLM):
                 code = ErrorCode.LLM_API_ERROR
                 detail = str(type(e))
 
-        yield LlmMessage(
+        return LlmMessage(
             role=LlmMessageRole.ASSISTANT,
             content=None,
             usage=None,

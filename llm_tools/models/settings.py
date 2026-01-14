@@ -1,6 +1,6 @@
 from typing import Literal
 
-from openai import BaseModel
+from pydantic import BaseModel
 
 
 class LlmApiSettings(BaseModel):
