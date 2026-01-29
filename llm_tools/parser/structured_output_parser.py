@@ -7,7 +7,6 @@ from pydantic import BaseModel
 
 from llm_tools.utils.log import LogFactory
 
-
 _log = LogFactory.get_logger(__name__)
 
 
@@ -58,7 +57,6 @@ class StructuredOutputParser:
         parsed = self._parse_json(text, try_fix=lenient)
 
         if model is not None:
-            # FIXME: StructuredOutput model never raises an exception
             try:
                 parsed = model(**parsed)
             except Exception as e:
@@ -66,6 +64,7 @@ class StructuredOutputParser:
                     parsed = self._extract_properties(parsed)
                     parsed = model(**parsed)
                 else:
+                    print(f"Could not parse model [input='{parsed}']")
                     raise e
 
         return parsed
@@ -86,6 +85,10 @@ class StructuredOutputParser:
                         idx,
                         text,
                         e,
+                    )
+                    print(
+                        "Could not parse JSON. Trying to fix. "
+                        f"[iteration='{idx}', text='{text}', error='{e}']"
                     )
                     try:
                         text = func(text)

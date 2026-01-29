@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from base64 import b64encode
 from collections.abc import AsyncIterator
@@ -15,6 +17,19 @@ class LlmUsage(Usage):
     output_tokens: int | None = None
     model: str | None = None
     llm_name: str | None = None
+
+    def __add__(self, other: LlmUsage) -> LlmUsage:
+        if (
+            self.llm_name is not None and other.llm_name is not None
+        ) and self.llm_name != other.llm_name:
+            raise ValueError("Usages from different LLMs cannot be added.")
+
+        return LlmUsage(
+            input_tokens=((self.input_tokens or 0) + (other.input_tokens or 0)),
+            output_tokens=((self.output_tokens or 0) + (other.output_tokens or 0)),
+            model=self.model or other.model,
+            llm_name=self.llm_name or other.llm_name,
+        )
 
 
 class LlmMedium(BaseModel):
@@ -47,6 +62,7 @@ class LlmGenerationConfig(BaseModel):
     json_output: bool = False
     json_schema: dict | type[BaseModel] | None = None
     chunk_buffer_n: int = 10
+    max_output_tokens: int | None = None
 
 
 DEFAULT_LLM_GENERATION_CONFIG = LlmGenerationConfig()
