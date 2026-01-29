@@ -169,7 +169,7 @@ class AzureOpenAiLLM(LLM):
             temperature=self._get_temperature(config.temperature),
             reasoning=self._get_reasoning(config.reasoning_effort),
             text=self._get_response_format(config),
-            max_output_tokens=self._llm_spec.max_output_tokens,
+            max_output_tokens=self._get_max_output_tokens(config),
         )
         return response
 
@@ -185,7 +185,7 @@ class AzureOpenAiLLM(LLM):
             temperature=self._get_temperature(config.temperature),
             reasoning=self._get_reasoning(config.reasoning_effort),
             text=self._get_response_format(config),
-            max_output_tokens=self._llm_spec.max_output_tokens,
+            max_output_tokens=self._get_max_output_tokens(config),
         )
         return events
 
@@ -216,6 +216,9 @@ class AzureOpenAiLLM(LLM):
         return ResponseTextConfigParam(
             format=cast(ResponseFormatTextConfigParam, response_format)
         )
+
+    def _get_max_output_tokens(self, config: LlmGenerationConfig) -> int | None:
+        return config.max_output_tokens or self._llm_spec.max_output_tokens
 
     def _get_max_prefix_len(self, prefixes: Sequence[str]) -> int:
         if not prefixes:
