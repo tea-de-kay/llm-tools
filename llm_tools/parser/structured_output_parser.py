@@ -1,11 +1,12 @@
-import json
 import re
 from collections.abc import Callable
 from typing import Any, TypeVar, cast, overload
 
+import pyjson5
 from pydantic import BaseModel
 
 from llm_tools.utils.log import LogFactory
+
 
 _log = LogFactory.get_logger(__name__)
 
@@ -108,7 +109,7 @@ class StructuredOutputParser:
         end = text.rfind("}") + 1
         text = text[start:end]
 
-        return json.loads(text)
+        return pyjson5.decode(text)
 
     @classmethod
     def _extract_properties(cls, parsed: dict[str, Any]) -> dict[str, Any]:
