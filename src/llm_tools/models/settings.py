@@ -1,23 +1,36 @@
 from typing import Literal
 
+from llama_cpp import Any
 from pydantic import BaseModel
 
 
 class LlmApiSettings(BaseModel):
-    provider: Literal["openai"] = "openai"
+    provider: Literal["openai", "llama_cpp"] = "openai"
     """"A supported LLM provider."""
 
-    version: str
+    version: str = ""
     """The version of the LLM API."""
 
-    url: str
+    url: str = ""
     """The URL of the LLM API."""
 
-    deployment: str
+    deployment: str = ""
     """The name of the LLM API deployment."""
 
-    key: str
+    key: str = ""
     """The LLM API key."""
 
-    base_model_name: str
+    base_model_name: str = ""
     """The base LLM model name."""
+
+    hf_repo_id: str = ""
+    """The hugging face repo ID."""
+
+    hf_model_filename: str = ""
+    """The hugging face model file name."""
+
+    model_path: str = ""
+    """The local file path of the model."""
+
+    additional_settings: dict[str, Any] = {}
+    """Additional settings used to initialize the LLM provider."""

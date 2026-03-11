@@ -21,7 +21,7 @@ class LlmPrompt(BasePrompt):
 
     system_prompt_template: str | JinjaTemplate | None
     user_prompt_template: str | JinjaTemplate | None
-    prompt_inputs: PromptTemplateVariables
+    prompt_inputs: PromptTemplateVariables | None = None
     history: ConversationHistory | None = None
     media: list[LlmMedium] | None = None
 
@@ -37,7 +37,7 @@ class LlmPrompt(BasePrompt):
         return value
 
     def to_llm_messages(self) -> list[LlmMessage]:
-        prompt_inputs = dict(self.prompt_inputs)
+        prompt_inputs = dict(self.prompt_inputs or {})
         messages: list[LlmMessage] = []
         if isinstance(self.system_prompt_template, JinjaTemplate):
             msg = LlmMessage(
