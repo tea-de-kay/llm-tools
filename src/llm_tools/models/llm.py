@@ -8,7 +8,7 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 from llm_tools.models.errors import ErrorInfo
-from llm_tools.models.settings import LlmApiSettings
+from llm_tools.models.settings import LlmApiSettings, LlmSettings
 from llm_tools.models.types import LlmMessageRole, LlmReasoningEffort, Usage
 
 
@@ -94,8 +94,14 @@ class BasePrompt(BaseModel):
 
 
 class LLM(ABC):
-    def __init__(self, api_settings: LlmApiSettings, spec: LlmSpec) -> None:
+    def __init__(
+        self,
+        api_settings: LlmApiSettings,
+        settings: LlmSettings,
+        spec: LlmSpec,
+    ) -> None:
         self._api_settings = api_settings
+        self._settings = settings
         self._llm_spec = spec
 
     @abstractmethod

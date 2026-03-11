@@ -39,7 +39,7 @@ from llm_tools.models.llm import (
     LlmSpec,
     LlmUsage,
 )
-from llm_tools.models.settings import LlmApiSettings
+from llm_tools.models.settings import LlmApiSettings, LlmSettings
 from llm_tools.models.types import LlmMessageRole, LlmReasoningEffort
 from llm_tools.utils.log import LogFactory
 
@@ -93,7 +93,7 @@ class AzureOpenAiLLM(LLM):
     _CLIENTS: dict[tuple[str, str, str], AsyncAzureOpenAI] = {}
 
     def __init__(self, api_settings: LlmApiSettings, spec: LlmSpec) -> None:
-        super().__init__(api_settings, spec)
+        super().__init__(api_settings, LlmSettings(), spec)
 
         self._client = self._get_client()
         self._model_deployment: str = cast(str, self._api_settings.deployment)

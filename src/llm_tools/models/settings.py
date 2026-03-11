@@ -4,6 +4,10 @@ from llama_cpp import Any
 from pydantic import BaseModel
 
 
+class LlmSettings(BaseModel):
+    pass
+
+
 class LlmApiSettings(BaseModel):
     provider: Literal["openai", "llama_cpp"] = "openai"
     """"A supported LLM provider."""
@@ -31,6 +35,3 @@ class LlmApiSettings(BaseModel):
 
     model_path: str = ""
     """The local file path of the model."""
-
-    additional_settings: dict[str, Any] = {}
-    """Additional settings used to initialize the LLM provider."""

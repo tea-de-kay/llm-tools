@@ -15,7 +15,7 @@ dependencies = [
 
 [project.optional-dependencies]
 openai = ["openai >=2.0.0,<3.0.0"]
-llama_cpp = ["llama-cpp-python >=0.3.0,<0.4.0", "huggingface-hub >=1.6.0,<2.0.0"]
+llama-cpp = ["llama-cpp-python >=0.3.0,<0.4.0", "huggingface-hub >=1.6.0,<2.0.0"]
 
 
 [build-system]

@@ -13,10 +13,10 @@ from llama_cpp import (
     ChatCompletionRequestResponseFormat,
     CreateChatCompletionResponse,
     Llama,
+    LlamaRAMCache,
 )
 from pydantic import BaseModel
 
-from llm_tools.llms.llamacpp.const import DEFAULT_LLM_SETTINGS
 from llm_tools.models.errors import ErrorCode, ErrorInfo
 from llm_tools.models.llm import (
     DEFAULT_LLM_GENERATION_CONFIG,
@@ -29,7 +29,7 @@ from llm_tools.models.llm import (
     LlmSpec,
     LlmUsage,
 )
-from llm_tools.models.settings import LlmApiSettings
+from llm_tools.models.settings import LlmApiSettings, LlmSettings
 from llm_tools.models.types import LlmMessageRole
 from llm_tools.utils.log import LogFactory
 
@@ -69,12 +69,25 @@ class LlamaCppLlmMessage(BaseModel):
         )
 
 
+class LlamaCppLlmSettings(LlmSettings):
+    n_gpu_layers: int = 0
+    n_ctx: int = 4096
+    verbose: bool = False
+    n_threads: int | None = None
+    use_cache: bool = True
+    cache_size_in_bytes: int = 100 * 1024 * 1024
+
+
 class LlamaCppLLM(LLM):
     _LLMS: dict[tuple[str, str, str], Llama] = {}
     _SINGLE_THREAD_EXECUTOR = ThreadPoolExecutor(1, "llama-cpp-llm")
 
-    def __init__(self, api_settings: LlmApiSettings, spec: LlmSpec) -> None:
-        super().__init__(api_settings, spec)
+    def __init__(
+        self, api_settings: LlmApiSettings, settings: LlamaCppLlmSettings, spec: LlmSpec
+    ) -> None:
+        self._api_settings = api_settings
+        self._settings = settings
+        self._llm_spec = spec
 
         self._llm = self._load_llm()
 
@@ -85,12 +98,18 @@ class LlamaCppLLM(LLM):
         cache_key = (repo_id, model_filename, path)
         llm = self._LLMS.get(cache_key)
         if llm is None:
-            llm_settings = DEFAULT_LLM_SETTINGS | self._api_settings.additional_settings
             if path:
-                llm = Llama(model_path=path, **llm_settings)
+                llm = Llama(model_path=path, **self._settings.model_dump())
             else:
                 llm = Llama.from_pretrained(
-                    repo_id=repo_id, filename=model_filename, **llm_settings
+                    repo_id=repo_id,
+                    filename=model_filename,
+                    **self._settings.model_dump(),
+                )
+
+            if self._settings.use_cache:
+                llm.set_cache(
+                    LlamaRAMCache(capacity_bytes=self._settings.cache_size_in_bytes)
                 )
 
             self._LLMS[cache_key] = llm

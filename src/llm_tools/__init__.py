@@ -1,6 +1,6 @@
 from llm_tools.models.llm import LLM, LlmGenerationConfig, LlmMessage, LlmSpec, LlmUsage
 from llm_tools.models.prompt import PromptTemplateVariables, StructuredLlmOutput
-from llm_tools.models.settings import LlmApiSettings
+from llm_tools.models.settings import LlmApiSettings, LlmSettings
 
 
 __all__ = [
@@ -8,6 +8,7 @@ __all__ = [
     "LlmApiSettings",
     "LlmGenerationConfig",
     "LlmMessage",
+    "LlmSettings",
     "LlmSpec",
     "LlmUsage",
     "PromptTemplateVariables",
