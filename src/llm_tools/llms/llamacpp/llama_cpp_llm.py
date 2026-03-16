@@ -13,6 +13,7 @@ from llama_cpp import (
     ChatCompletionRequestResponseFormat,
     CreateChatCompletionResponse,
     Llama,
+    LlamaDiskCache,
     LlamaRAMCache,
 )
 from pydantic import BaseModel
@@ -74,7 +75,8 @@ class LlamaCppLlmSettings(LlmSettings):
     n_ctx: int = 4096
     verbose: bool = False
     n_threads: int | None = None
-    use_cache: bool = True
+    n_threads_batch: int | None = None
+    use_cache: None | Literal["disk", "ram"] = "ram"
     cache_size_in_bytes: int = 100 * 1024 * 1024
 
 
@@ -107,10 +109,17 @@ class LlamaCppLLM(LLM):
                     **self._settings.model_dump(),
                 )
 
-            if self._settings.use_cache:
-                llm.set_cache(
-                    LlamaRAMCache(capacity_bytes=self._settings.cache_size_in_bytes)
-                )
+            match self._settings.use_cache:
+                case "ram":
+                    llm.set_cache(
+                        LlamaRAMCache(capacity_bytes=self._settings.cache_size_in_bytes)
+                    )
+                case "disk":
+                    llm.set_cache(
+                        LlamaDiskCache(
+                            capacity_bytes=self._settings.cache_size_in_bytes
+                        )
+                    )
 
             self._LLMS[cache_key] = llm
 
